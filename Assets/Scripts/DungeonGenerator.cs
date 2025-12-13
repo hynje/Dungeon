@@ -80,10 +80,10 @@ public class DungeonGenerator : MonoBehaviour
         CreateRoomsAndCorridors(rootNode);
         
         // [테스트용] 텍스트로 맵 출력
-        PrintDungeonToConsole(); 
+        // PrintDungeonToConsole(); 
 
         // 5. Tilemap 시각화는 잠시 주석 처리
-        // RenderMap();
+        RenderMap();
     }
 
     // =========================================================================
@@ -262,12 +262,17 @@ public class DungeonGenerator : MonoBehaviour
                 {
                     tilemap.SetTile(pos, floorTile);
                 }
-                else // 벽 (주변에 바닥이 있어야 벽을 그림)
+                else if (mapData[x, y] == 2)
                 {
-                    if (CheckIfWallShouldBeDrawn(x, y))
-                    {
-                        tilemap.SetTile(pos, wallTile);
-                    }
+                    tilemap.SetTile(pos, floorTile);
+                }
+                else // 벽
+                {
+                    // if (CheckIfWallShouldBeDrawn(x, y))
+                    // {
+                    //     tilemap.SetTile(pos, wallTile);
+                    // }
+                    tilemap.SetTile(pos, wallTile);
                 }
             }
         }
