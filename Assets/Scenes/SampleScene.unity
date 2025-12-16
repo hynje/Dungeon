@@ -549,7 +549,16 @@ MonoBehaviour:
   seed: 0
   tilemap: {fileID: 115271777}
   floorTile: {fileID: 11400000, guid: bfc591f7744714a1a9d3b3584c4d2f67, type: 2}
-  wallTile: {fileID: 11400000, guid: 4fbbc0e55411e497392fefe048c45d8e, type: 2}
+  wallSprites:
+  - {fileID: 11400000, guid: ff6f6a6e4f6a843b2a8eeeecf3da2478, type: 2}
+  - {fileID: 11400000, guid: 1f021e4a1a7ee437eab22ec6e1a336a9, type: 2}
+  - {fileID: 11400000, guid: 17c4f447424f049d39ef3b45f3aa6c25, type: 2}
+  - {fileID: 11400000, guid: 5883da0804b814ef280f6229dc23bb6e, type: 2}
+  - {fileID: 11400000, guid: 4fbbc0e55411e497392fefe048c45d8e, type: 2}
+  - {fileID: 11400000, guid: 7bae55cddda1c4f25a22a09c0fc1f318, type: 2}
+  - {fileID: 11400000, guid: 707b7226043764495a6bbb6a4d9692e9, type: 2}
+  - {fileID: 11400000, guid: 86ece4cb49dce438194e130ef743b9fe, type: 2}
+  - {fileID: 11400000, guid: 21e1bf50d68e04e42921324f0e5a5672, type: 2}
 --- !u!4 &1664807077
 Transform:
   m_ObjectHideFlags: 0
