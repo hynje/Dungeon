@@ -18,8 +18,7 @@ public class DungeonGenerator : MonoBehaviour
     [Header("Tilemap References")]
     public Tilemap tilemap;
     public TileBase floorTile;
-    // 순서: 0:TL, 1:T, 2:TR, 3:L, 4:C, 5:R, 6:BL, 7:B, 8:BR
-    public TileBase[] wallSprites;
+    public TileBase wallAutoTile;
 
     // --- 내부 변수 ---
     private System.Random prng; // 시드 기반 난수 생성기
@@ -252,55 +251,31 @@ public class DungeonGenerator : MonoBehaviour
     
     private void RenderMap()
     {
+        // 1. 기존 타일 싹 지우기
         tilemap.ClearAllTiles();
 
+        // 2. 맵 데이터를 순회하며 타일 배치
         for (int x = 0; x < mapWidth; x++)
         {
             for (int y = 0; y < mapHeight; y++)
             {
+                Vector3Int pos = new Vector3Int(x, y, 0);
+
                 if (mapData[x, y] == 1 || mapData[x, y] == 2) // 바닥
                 {
-                    tilemap.SetTile(new Vector3Int(x, y, 0), floorTile);
+                    tilemap.SetTile(pos, floorTile);
                 }
-                else // 벽
+                else // 벽 (0)
                 {
-                    // 벽을 그릴지 말지 결정 (최적화)
-
-                    int mask = GetWallMask(x, y);
-
-                    // 배열 범위를 벗어나지 않게 안전장치
-                    if (mask >= 0 && mask < wallSprites.Length)
-                    {
-                        tilemap.SetTile(new Vector3Int(x, y, 0), wallSprites[mask]);
-                    }
-
+                    // 주변 모양 계산은 Rule Tile이 알아서 합니다.
+                    tilemap.SetTile(pos, wallAutoTile);
                 }
             }
         }
-    }
-    
-    // 4방향 검사를 통해 0~15 사이의 마스크 값 반환
-    private int GetWallMask(int x, int y)
-    {
-        int mask = 0;
-
-        // 가중치: 상(1), 하(2), 좌(4), 우(8)
-        if (IsWall(x, y + 1)) mask += 1; // Top
-        if (IsWall(x, y - 1)) mask += 2; // Bottom
-        if (IsWall(x - 1, y)) mask += 4; // Left
-        if (IsWall(x + 1, y)) mask += 8; // Right
-
-        return mask;
-    }
-
-    // 좌표가 맵 밖이거나, 맵 데이터가 0(벽)이면 true 반환
-    private bool IsWall(int x, int y)
-    {
-        // 맵 밖은 벽으로 간주 (그래야 외벽이 깔끔하게 마감됨)
-        if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight) return true;
         
-        // 0이면 벽, 그 외(1, 2)는 바닥
-        return mapData[x, y] == 0;
+        // [중요] Rule Tile 갱신 강제 수행
+        // 때때로 스크립트로 대량 배치 시 연결이 바로 안 보일 수 있어서 리프레시를 해줍니다.
+        tilemap.RefreshAllTiles();
     }
 
     // 최적화: 바닥(1)에 인접한 벽(0)만 실제로 렌더링
