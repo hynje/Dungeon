@@ -20,6 +20,8 @@ public class DungeonGenerator : MonoBehaviour
     public TileBase floorAutoTile;
     public TileBase wallAutoTile;
 
+    public MinimapRenderer minimapRenderer;
+    
     // --- 내부 변수 ---
     private System.Random prng; // 시드 기반 난수 생성기
     private int[,] mapData; // 논리적인 맵 데이터 (0: 벽, 1: 바닥)
@@ -49,6 +51,11 @@ public class DungeonGenerator : MonoBehaviour
     void Start()
     {
         GenerateDungeon();
+    }
+    
+    public int[,] GetMapData()
+    {
+        return mapData;
     }
     
     public void GenerateDungeon()
@@ -82,8 +89,14 @@ public class DungeonGenerator : MonoBehaviour
         // [테스트용] 텍스트로 맵 출력
         // PrintDungeonToConsole(); 
 
-        // 5. Tilemap 시각화는 잠시 주석 처리
+        // 5. 맵 그리기 
         RenderMap();
+        
+        // 6. 미니맵 그리기 호출
+        if (minimapRenderer != null)
+        {
+            minimapRenderer.DrawMinimap();
+        }
     }
 
     // =========================================================================
