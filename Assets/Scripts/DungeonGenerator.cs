@@ -17,7 +17,7 @@ public class DungeonGenerator : MonoBehaviour
 
     [Header("Tilemap References")]
     public Tilemap tilemap;
-    public TileBase floorTile;
+    public TileBase floorAutoTile;
     public TileBase wallAutoTile;
 
     // --- 내부 변수 ---
@@ -263,11 +263,10 @@ public class DungeonGenerator : MonoBehaviour
 
                 if (mapData[x, y] == 1 || mapData[x, y] == 2) // 바닥
                 {
-                    tilemap.SetTile(pos, floorTile);
+                    tilemap.SetTile(pos, floorAutoTile);
                 }
                 else // 벽 (0)
                 {
-                    // 주변 모양 계산은 Rule Tile이 알아서 합니다.
                     tilemap.SetTile(pos, wallAutoTile);
                 }
             }

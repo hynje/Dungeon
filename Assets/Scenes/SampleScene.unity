@@ -548,7 +548,7 @@ MonoBehaviour:
   useRandomSeed: 1
   seed: 0
   tilemap: {fileID: 115271777}
-  floorTile: {fileID: 11400000, guid: bfc591f7744714a1a9d3b3584c4d2f67, type: 2}
+  floorAutoTile: {fileID: 11400000, guid: bba9a873c6d834d51b6a7016b94ce339, type: 2}
   wallAutoTile: {fileID: 11400000, guid: 851adc46a9d6b4c9abf58ee2da70335c, type: 2}
 --- !u!4 &1664807077
 Transform:
