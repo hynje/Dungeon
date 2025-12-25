@@ -21,6 +21,7 @@ public class DungeonGenerator : MonoBehaviour
     public TileBase wallAutoTile;
 
     public MinimapRenderer minimapRenderer;
+    public PlayerController player;
     
     // --- 내부 변수 ---
     private System.Random prng; // 시드 기반 난수 생성기
@@ -96,6 +97,21 @@ public class DungeonGenerator : MonoBehaviour
         if (minimapRenderer != null)
         {
             minimapRenderer.DrawMinimap();
+        }
+        
+        // 7. 플레이어 스폰 
+        if (player != null && rooms.Count > 0)
+        {
+            // 첫 번째 방의 중심점 계산
+            RectInt firstRoom = rooms[0];
+            Vector2Int startPos = new Vector2Int(
+                (int)firstRoom.center.x, 
+                (int)firstRoom.center.y
+            );
+
+            Debug.Log(startPos);
+            // 플레이어 이동 및 초기화
+            player.Spawn(startPos);
         }
     }
 
