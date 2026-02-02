@@ -22,8 +22,8 @@ public class TurnManager : MonoBehaviour
         
         Debug.Log("플레이어 턴 종료 -> 적 턴 시작");
         
-        // (임시) 적 턴이 없으니 0.1초 뒤 바로 플레이어 턴으로 복귀
-        Invoke("StartPlayerTurn", 0.1f);
+        // (임시) 적 턴이 없으니 바로 플레이어 턴으로 복귀
+        StartPlayerTurn();
     }
 
     public void StartPlayerTurn()
