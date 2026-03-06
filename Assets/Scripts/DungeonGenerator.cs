@@ -22,6 +22,8 @@ public class DungeonGenerator : MonoBehaviour
 
     public MinimapRenderer minimapRenderer;
     public PlayerController player;
+
+    public bool[,] explored;    // 맵 탐색 배열 
     
     // --- 내부 변수 ---
     private System.Random prng; // 시드 기반 난수 생성기
@@ -54,10 +56,8 @@ public class DungeonGenerator : MonoBehaviour
         GenerateDungeon();
     }
     
-    public int[,] GetMapData()
-    {
-        return mapData;
-    }
+    public int[,] GetMapData() { return mapData; }
+    public List<RectInt> GetRooms() { return rooms; }
     
     public void GenerateDungeon()
     {
@@ -78,6 +78,7 @@ public class DungeonGenerator : MonoBehaviour
                 mapData[x, y] = 0; // 0 = Wall
             }
         }
+        explored = new bool[mapWidth, mapHeight];   // 맵 크기에 맞게 탐색 배열 초기화
         
         // 3. BSP 분할 시작
         rootNode = new Node(new RectInt(0, 0, mapWidth, mapHeight));
@@ -96,7 +97,7 @@ public class DungeonGenerator : MonoBehaviour
         // 6. 미니맵 그리기 호출
         if (minimapRenderer != null)
         {
-            minimapRenderer.DrawMinimap();
+            minimapRenderer.InitMinimap(); 
         }
         
         // 7. 플레이어 스폰 

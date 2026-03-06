@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,48 +18,102 @@ public class MinimapRenderer : MonoBehaviour
     private float mapScaleX;
     private float mapScaleY;
     private int width, height;
+    private Texture2D minimapTexture;
 
-    // 던전 생성이 끝난 뒤 호출해주세요.
-    public void DrawMinimap()
+    // 1. 게임 시작(던전 생성 직후) 시 1회 호출
+    public void InitMinimap()
     {
-        int[,] mapData = dungeonGenerator.GetMapData(); // ※ DungeonGenerator에 Getter 필요
+        int[,] mapData = dungeonGenerator.GetMapData(); 
         width = mapData.GetLength(0);
         height = mapData.GetLength(1);
 
-        // 1. 맵 크기에 맞는 텍스처 생성
-        Texture2D texture = new Texture2D(width, height);
-        texture.filterMode = FilterMode.Point; // 도트가 뭉개지지 않게 설정
+        // 텍스처 생성 및 투명하게 초기화
+        minimapTexture = new Texture2D(width, height);
+        minimapTexture.filterMode = FilterMode.Point; 
 
-        // 2. 픽셀 하나하나 색칠하기
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                Color pixelColor = emptyColor;
+                minimapTexture.SetPixel(x, y, emptyColor);
+            }
+        }
+        minimapTexture.Apply();
+        minimapDisplay.texture = minimapTexture;
 
-                if (mapData[x, y] > 0) // 바닥(1)이나 복도(2)
-                {
-                    pixelColor = floorColor;
-                }
-                else // 벽(0)
-                {
-                    // [핵심 로직] 벽이지만 '바닥과 인접한 벽'만 흰색으로 칠함
-                    if (IsWallOutline(x, y, mapData))
-                    {
-                        pixelColor = wallOutlineColor;
-                    }
-                }
-                
-                texture.SetPixel(x, y, pixelColor);
+        mapScaleX = minimapDisplay.rectTransform.rect.width / width;
+        mapScaleY = minimapDisplay.rectTransform.rect.height / height;
+    }
+
+    // 2. 플레이어가 이동할 때마다 호출되어 시야를 밝힘
+    public void UpdateExploredArea(Vector2Int playerPos)
+    {
+        if (minimapTexture == null) return;
+
+        int[,] mapData = dungeonGenerator.GetMapData();
+        List<RectInt> rooms = dungeonGenerator.GetRooms();
+        bool[,] explored = dungeonGenerator.explored;
+        
+        bool isTextureChanged = false;
+
+        // A. 플레이어 주변 3x3 칸 밝히기 (복도 시야)
+        for (int i = -1; i <= 1; i++)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                int checkX = playerPos.x + i;
+                int checkY = playerPos.y + j;
+                if (RevealTile(checkX, checkY, mapData, explored)) isTextureChanged = true;
             }
         }
 
-        texture.Apply(); // 변경사항 적용
-        minimapDisplay.texture = texture; // UI에 텍스처 적용
+        // B. 방(Room) 안에 있다면 해당 방 전체 밝히기
+        foreach (RectInt room in rooms)
+        {
+            // 플레이어가 이 방 안에 있는지 체크
+            if (room.Contains(playerPos))
+            {
+                // 방의 바닥뿐만 아니라, 방을 둘러싼 벽 테두리(-1 ~ +1)까지 밝혀야 깔끔함
+                for (int x = room.x - 1; x <= room.xMax; x++)
+                {
+                    for (int y = room.y - 1; y <= room.yMax; y++)
+                    {
+                        if (RevealTile(x, y, mapData, explored)) isTextureChanged = true;
+                    }
+                }
+                break; // 이미 방을 찾았으니 다른 방은 검사 안 함
+            }
+        }
 
-        // 미니맵 UI 크기에 따른 비율 계산 (플레이어 아이콘 이동용)
-        mapScaleX = minimapDisplay.rectTransform.rect.width / width;
-        mapScaleY = minimapDisplay.rectTransform.rect.height / height;
+        // 변경된 픽셀이 있다면 텍스처 적용
+        if (isTextureChanged)
+        {
+            minimapTexture.Apply();
+        }
+    }
+
+    // 특정 타일을 미니맵에 그리고, 새로 밝혀졌다면 true 반환
+    private bool RevealTile(int x, int y, int[,] mapData, bool[,] explored)
+    {
+        if (x < 0 || x >= width || y < 0 || y >= height) return false;
+        
+        // 이미 밝혀진 곳이면 무시
+        if (explored[x, y]) return false;
+
+        explored[x, y] = true; // 탐색 완료 처리
+        Color pixelColor = emptyColor;
+
+        if (mapData[x, y] > 0) // 바닥/복도
+        {
+            pixelColor = floorColor;
+        }
+        else if (IsWallOutline(x, y, mapData)) // 외곽선 벽
+        {
+            pixelColor = wallOutlineColor;
+        }
+
+        minimapTexture.SetPixel(x, y, pixelColor);
+        return true;
     }
 
     // 8방향 중 하나라도 바닥이 있으면 '외곽선'으로 취급
@@ -88,22 +143,12 @@ public class MinimapRenderer : MonoBehaviour
 
     void Update()
     {
-        // 플레이어 아이콘 실시간 동기화
+        // 플레이어 아이콘 실시간 동기화 (기존 로직 유지)
         if (playerTransform != null && playerIcon != null && width > 0)
         {
-            // 맵 좌표(Grid)를 UI 좌표(AnchoredPosition)로 변환
-            // RawImage는 Pivot이 (0,1) Top-Left 기준이라고 가정하면 좌표계산이 조금 복잡할 수 있음.
-            // 가장 쉬운 방법: RawImage와 PlayerIcon 모두 Pivot을 (0,0) Bottom-Left로 맞추는 것.
-            // 여기서는 RawImage 내에서의 상대 좌표 비율을 사용합니다.
-            
             float pX = playerTransform.position.x;
             float pY = playerTransform.position.y;
-
-            // 미니맵 상에서의 위치 계산
-            Vector2 iconPos = new Vector2(pX * mapScaleX, pY * mapScaleY);
-            
-            // PlayerIcon의 앵커가 Bottom-Left(0,0)라고 가정할 때:
-            playerIcon.anchoredPosition = iconPos;
+            playerIcon.anchoredPosition = new Vector2(pX * mapScaleX, pY * mapScaleY);
         }
     }
 }

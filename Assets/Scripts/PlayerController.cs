@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     [Header("References")]
     public DungeonGenerator dungeonGenerator;
     public Animator animator;
+    public MinimapRenderer minimap;
 
     private Vector2Int gridPosition;
     private bool isMoving = false;
@@ -24,6 +25,9 @@ public class PlayerController : MonoBehaviour
     {
         gridPosition = startPos;
         transform.position = new Vector3(startPos.x + 0.5f, startPos.y + 0.5f, 0);
+        
+        // 태어난 곳 주변 시야 밝히기
+        if (minimap != null) minimap.UpdateExploredArea(gridPosition);
     }
 
     void Update()
@@ -109,6 +113,9 @@ public class PlayerController : MonoBehaviour
         transform.position = targetWorldPos;
         gridPosition = targetPos;
 
+        // 이동을 마친 후 새 위치에서 미니맵 시야 갱신
+        if (minimap != null) minimap.UpdateExploredArea(gridPosition);
+        
         // 턴 종료 처리 (적이 있다면 여기서 적의 움직임을 기다림)
         TurnManager.Instance.EndPlayerTurn();
 
